@@ -110,6 +110,7 @@ dependencies {
     implementation(libs.vico.compose.m3)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
