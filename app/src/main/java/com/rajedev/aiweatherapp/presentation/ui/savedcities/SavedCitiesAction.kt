@@ -5,4 +5,6 @@ sealed interface SavedCitiesAction {
     data object UseCurrentLocation : SavedCitiesAction
     data class LocationPermissionResult(val granted: Boolean) : SavedCitiesAction
     data object ConsumeError : SavedCitiesAction
+    data object DismissLocationServicesDialog : SavedCitiesAction
+    data object OpenLocationSettingsRequested : SavedCitiesAction
 }

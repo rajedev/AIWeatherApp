@@ -26,6 +26,8 @@ import com.rajedev.aiweatherapp.domain.usecase.SearchCitiesUseCase
 import com.rajedev.aiweatherapp.domain.usecase.SearchCitiesUseCaseImpl
 import com.rajedev.aiweatherapp.domain.usecase.SetAlertThresholdsUseCase
 import com.rajedev.aiweatherapp.domain.usecase.SetAlertThresholdsUseCaseImpl
+import com.rajedev.aiweatherapp.domain.usecase.SetThemeModeUseCase
+import com.rajedev.aiweatherapp.domain.usecase.SetThemeModeUseCaseImpl
 import com.rajedev.aiweatherapp.domain.usecase.SetUnitsUseCase
 import com.rajedev.aiweatherapp.domain.usecase.SetUnitsUseCaseImpl
 import dagger.Binds
@@ -77,6 +79,9 @@ internal abstract class UseCaseModule {
 
     @Binds
     abstract fun bindSetAlertThresholdsUseCase(impl: SetAlertThresholdsUseCaseImpl): SetAlertThresholdsUseCase
+
+    @Binds
+    abstract fun bindSetThemeModeUseCase(impl: SetThemeModeUseCaseImpl): SetThemeModeUseCase
 
     @Binds
     abstract fun bindRefreshAllSavedCitiesUseCase(

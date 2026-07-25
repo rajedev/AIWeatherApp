@@ -21,6 +21,11 @@
     <string name="saved_cities_title">Saved Cities</string>
     <string name="saved_cities_empty_message">No saved cities yet. Search for a city or use your current location.</string>
 
+    <string name="location_services_disabled_title">Location services are off</string>
+    <string name="location_services_disabled_message">Turn on location services in your device settings to use your current location.</string>
+    <string name="location_services_disabled_confirm">Open settings</string>
+    <string name="action_cancel">Cancel</string>
+
     <string name="city_search_title">Add City</string>
     <string name="city_search_placeholder">Search city</string>
     <string name="city_search_empty_message">Search for a city by name to add it.</string>
@@ -32,6 +37,10 @@
     <string name="settings_units_label">Units</string>
     <string name="settings_units_metric">Celsius (°C)</string>
     <string name="settings_units_imperial">Fahrenheit (°F)</string>
+    <string name="settings_theme_label">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
     <string name="settings_alerts_label">Enable Alerts</string>
     <string name="settings_high_temp_label">High temperature alert (%1$d%2$s)</string>
     <string name="settings_low_temp_label">Low temperature alert (%1$d%2$s)</string>

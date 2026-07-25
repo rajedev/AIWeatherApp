@@ -26,13 +26,17 @@ internal class CityRepositoryImpl @Inject constructor(
 ) : CityRepository {
 
     override suspend fun searchCities(query: String): Result<List<ResolvedCity>> = withContext(ioDispatcher) {
-        runCatching { api.searchPlaces(query).map { it.toDomain() } }
+        // distinctBy cityId: geocode results are deduped at COORD_PRECISION granularity, so two
+        // near-duplicate matches (e.g. differing only in local_names) can round to the same
+        // cityId. cityId is used as the Compose list key for search results, which requires
+        // uniqueness - without this, duplicate matches crash the list with a key collision.
+        runCatching { api.searchPlaces(query).mapNotNull { it.toDomain() }.distinctBy { it.cityId } }
     }
 
     override suspend fun resolveFromCoordinates(lat: Double, lon: Double): Result<ResolvedCity> =
         withContext(ioDispatcher) {
             runCatching {
-                api.reverseGeocode(lat, lon, limit = REVERSE_GEOCODE_LIMIT).firstOrNull()?.toDomain()
+                api.reverseGeocode(lat, lon, limit = REVERSE_GEOCODE_LIMIT).firstNotNullOfOrNull { it.toDomain() }
                     ?: error("No place found for coordinates $lat,$lon")
             }
         }

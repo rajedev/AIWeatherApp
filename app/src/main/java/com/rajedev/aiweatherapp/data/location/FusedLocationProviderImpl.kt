@@ -2,6 +2,8 @@ package com.rajedev.aiweatherapp.data.location
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.location.LocationManager
+import androidx.core.location.LocationManagerCompat
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -21,7 +23,19 @@ internal class FusedLocationProviderImpl @Inject constructor(
     // One-shot fetch, not a location stream - caller (an explicit "use current location" action)
     // must have already confirmed the permission before invoking this.
     @SuppressLint("MissingPermission")
-    override suspend fun getCurrentLocation(): Result<LatLon> = suspendCancellableCoroutine { continuation ->
+    override suspend fun getCurrentLocation(): Result<LatLon> {
+        if (!isLocationServicesEnabled()) {
+            return Result.failure(LocationServicesDisabledException())
+        }
+        return fetchCurrentLocation()
+    }
+
+    private fun isLocationServicesEnabled(): Boolean {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return LocationManagerCompat.isLocationEnabled(locationManager)
+    }
+
+    private suspend fun fetchCurrentLocation(): Result<LatLon> = suspendCancellableCoroutine { continuation ->
         val cancellationSource = CancellationTokenSource()
         client.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancellationSource.token)
             .addOnSuccessListener { location ->

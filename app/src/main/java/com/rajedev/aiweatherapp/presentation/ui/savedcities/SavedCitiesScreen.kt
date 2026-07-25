@@ -1,5 +1,7 @@
 package com.rajedev.aiweatherapp.presentation.ui.savedcities
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +25,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -33,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -46,7 +51,9 @@ import com.rajedev.aiweatherapp.domain.model.WeatherUnit
 import com.rajedev.aiweatherapp.presentation.common.LocationPermissionHandler
 import com.rajedev.aiweatherapp.presentation.common.StaleDataBanner
 import com.rajedev.aiweatherapp.presentation.common.formatTemperature
+import com.rajedev.aiweatherapp.presentation.common.localHourFrom
 import com.rajedev.aiweatherapp.presentation.common.weatherIconFor
+import com.rajedev.aiweatherapp.presentation.common.weatherTintFor
 import com.rajedev.aiweatherapp.ui.theme.AIWeatherAppTheme
 
 @Composable
@@ -68,14 +75,24 @@ internal fun SavedCitiesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var pendingLocationPermissionRequest by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { event ->
             when (event) {
                 SavedCitiesUiEvent.RequestLocationPermission -> pendingLocationPermissionRequest = true
                 is SavedCitiesUiEvent.CityAdded -> onOpenCity(event.cityId)
+                SavedCitiesUiEvent.OpenLocationSettings ->
+                    context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
         }
+    }
+
+    LaunchedEffect(uiState.errorMessage) {
+        val message = uiState.errorMessage ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        viewModel.onAction(SavedCitiesAction.ConsumeError)
     }
 
     LocationPermissionHandler(
@@ -90,12 +107,20 @@ internal fun SavedCitiesScreen(
         },
     )
 
+    if (uiState.showLocationServicesDisabledDialog) {
+        LocationServicesDisabledDialog(
+            onConfirm = { viewModel.onAction(SavedCitiesAction.OpenLocationSettingsRequested) },
+            onDismiss = { viewModel.onAction(SavedCitiesAction.DismissLocationServicesDialog) },
+        )
+    }
+
     SavedCitiesContent(
         uiState = uiState,
         onAction = viewModel::onAction,
         onOpenCity = onOpenCity,
         onAddCity = onAddCity,
         onOpenSettings = onOpenSettings,
+        snackbarHostState = snackbarHostState,
     )
 }
 
@@ -107,10 +132,12 @@ private fun SavedCitiesContent(
     onOpenCity: (String) -> Unit,
     onAddCity: () -> Unit,
     onOpenSettings: () -> Unit,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.saved_cities_title)) },
@@ -184,7 +211,15 @@ private fun SavedCityCard(
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = weatherIconFor(city.current.conditionMain), contentDescription = null)
+                    Icon(
+                        imageVector = weatherIconFor(city.current.conditionMain),
+                        contentDescription = null,
+                        tint = weatherTintFor(
+                            conditionMain = city.current.conditionMain,
+                            temp = city.current.temp,
+                            localHour = localHourFrom(city.current.observedAt, city.current.tzOffsetSeconds),
+                        ),
+                    )
                     Text(
                         text = formatTemperature(city.current.temp, unit),
                         style = MaterialTheme.typography.headlineSmall,
@@ -223,6 +258,7 @@ private fun SavedCitiesContentPreview() {
             onOpenCity = {},
             onAddCity = {},
             onOpenSettings = {},
+            snackbarHostState = remember { SnackbarHostState() },
         )
     }
 }

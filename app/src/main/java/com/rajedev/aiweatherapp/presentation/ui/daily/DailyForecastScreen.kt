@@ -33,13 +33,20 @@ import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModelProdu
 import com.patrykandpatrick.vico.compose.cartesian.data.lineModel
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
+import com.patrykandpatrick.vico.compose.m3.common.rememberM3VicoTheme
 import com.rajedev.aiweatherapp.R
 import com.rajedev.aiweatherapp.domain.model.DailyForecast
 import com.rajedev.aiweatherapp.domain.model.WeatherUnit
 import com.rajedev.aiweatherapp.presentation.common.formatTemperature
 import com.rajedev.aiweatherapp.presentation.common.weatherIconFor
+import com.rajedev.aiweatherapp.presentation.common.weatherTintFor
 import com.rajedev.aiweatherapp.ui.theme.AIWeatherAppTheme
 import kotlinx.datetime.LocalDate
+
+// Daily buckets have no per-item hour - use a fixed midday reference so a day's icon never
+// resolves to the NIGHT mood, which only makes sense for a specific hour, not a whole day.
+private const val DAILY_ROW_REFERENCE_HOUR = 12
 
 @Composable
 fun DailyForecastRoute(cityId: String, onBack: () -> Unit) {
@@ -112,15 +119,20 @@ private fun TrendChart(dailyForecasts: List<DailyForecast>, modifier: Modifier =
         }
     }
 
-    CartesianChartHost(
-        chart = rememberCartesianChart(
-            rememberLineCartesianLayer(),
-            startAxis = VerticalAxis.rememberStart(),
-            bottomAxis = HorizontalAxis.rememberBottom(),
-        ),
-        modelProducer = modelProducer,
-        modifier = modifier.fillMaxWidth(),
-    )
+    // Vico's own default theme falls back to the system dark-mode setting, not this app's
+    // MaterialTheme (which can differ once the user overrides light/dark in Settings) - provide
+    // the M3-derived theme explicitly so axis labels/lines always match the actual color scheme.
+    ProvideVicoTheme(rememberM3VicoTheme()) {
+        CartesianChartHost(
+            chart = rememberCartesianChart(
+                rememberLineCartesianLayer(),
+                startAxis = VerticalAxis.rememberStart(),
+                bottomAxis = HorizontalAxis.rememberBottom(),
+            ),
+            modelProducer = modelProducer,
+            modifier = modifier.fillMaxWidth(),
+        )
+    }
 }
 
 @Composable
@@ -130,7 +142,15 @@ private fun DailyForecastRow(daily: DailyForecast, unit: WeatherUnit, modifier: 
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(text = daily.date.toString(), style = MaterialTheme.typography.bodyLarge)
-        Icon(imageVector = weatherIconFor(daily.dominantCondition), contentDescription = daily.dominantCondition)
+        Icon(
+            imageVector = weatherIconFor(daily.dominantCondition),
+            contentDescription = daily.dominantCondition,
+            tint = weatherTintFor(
+                conditionMain = daily.dominantCondition,
+                temp = daily.tempMax,
+                localHour = DAILY_ROW_REFERENCE_HOUR,
+            ),
+        )
         Text(
             text = "${formatTemperature(daily.tempMin, unit)} / ${formatTemperature(daily.tempMax, unit)}",
             style = MaterialTheme.typography.bodyLarge,

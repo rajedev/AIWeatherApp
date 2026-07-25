@@ -9,16 +9,20 @@ import kotlin.math.round
 // fine enough that two genuinely different nearby cities essentially never collide.
 private const val COORD_PRECISION = 100.0
 
-fun GeocodeResultDto.toDomain(): ResolvedCity {
-    val resolvedLat = lat ?: error("Missing latitude in geocode result")
-    val resolvedLon = lon ?: error("Missing longitude in geocode result")
+// Nullable so a single malformed entry in a multi-result geocode response (e.g. searching
+// "Sydney") can be dropped via mapNotNull instead of poisoning the whole result list.
+fun GeocodeResultDto.toDomain(): ResolvedCity? {
+    val resolvedLat = lat ?: return null
+    val resolvedLon = lon ?: return null
+    val resolvedName = name ?: return null
+    val resolvedCountry = country ?: return null
     val roundedLat = round(resolvedLat * COORD_PRECISION) / COORD_PRECISION
     val roundedLon = round(resolvedLon * COORD_PRECISION) / COORD_PRECISION
     return ResolvedCity(
         cityId = "$roundedLat,$roundedLon",
-        name = name ?: error("Missing city name in geocode result"),
+        name = resolvedName,
         state = state,
-        country = country ?: error("Missing country in geocode result"),
+        country = resolvedCountry,
         lat = resolvedLat,
         lon = resolvedLon,
     )

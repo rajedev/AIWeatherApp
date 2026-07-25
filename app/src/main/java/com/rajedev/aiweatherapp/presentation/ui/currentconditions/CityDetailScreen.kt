@@ -38,8 +38,11 @@ import com.rajedev.aiweatherapp.domain.model.WeatherUnit
 import com.rajedev.aiweatherapp.presentation.common.StaleDataBanner
 import com.rajedev.aiweatherapp.presentation.common.formatHour
 import com.rajedev.aiweatherapp.presentation.common.formatTemperature
+import com.rajedev.aiweatherapp.presentation.common.localHourFrom
 import com.rajedev.aiweatherapp.presentation.common.weatherIconFor
-import com.rajedev.aiweatherapp.presentation.theme.LocalWeatherTheme
+import com.rajedev.aiweatherapp.presentation.common.weatherTintFor
+import com.rajedev.aiweatherapp.presentation.theme.resolveMood
+import com.rajedev.aiweatherapp.presentation.theme.toThemeColors
 import com.rajedev.aiweatherapp.ui.theme.AIWeatherAppTheme
 
 @Composable
@@ -130,12 +133,23 @@ private fun HeroCard(
     onOpenDailyForecast: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Derived from THIS city's own conditions, not the app-wide saved-cities mood - the hero
+    // card must reflect whichever city is actually being viewed, not some other saved city's mood.
+    val themeColors = resolveMood(
+        conditionMain = current.conditionMain,
+        currentTemp = current.temp,
+        localHour = localHourFrom(current.observedAt, current.tzOffsetSeconds),
+    ).toThemeColors()
+
     Card(
         onClick = onOpenDailyForecast,
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = LocalWeatherTheme.current.surfaceTint),
+        colors = CardDefaults.cardColors(
+            containerColor = themeColors.surfaceTint,
+            contentColor = themeColors.onSurfaceTint,
+        ),
     ) {
         Column(
             modifier = Modifier
@@ -144,9 +158,9 @@ private fun HeroCard(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                imageVector = LocalWeatherTheme.current.icon,
+                imageVector = themeColors.icon,
                 contentDescription = current.conditionMain,
-                tint = LocalWeatherTheme.current.primary,
+                tint = themeColors.primary,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
             Text(text = formatTemperature(current.temp, unit), style = MaterialTheme.typography.displayLarge)
@@ -185,6 +199,11 @@ private fun HourlyForecastRow(
                     Icon(
                         imageVector = weatherIconFor(hour.conditionMain),
                         contentDescription = hour.conditionMain,
+                        tint = weatherTintFor(
+                            conditionMain = hour.conditionMain,
+                            temp = hour.temp,
+                            localHour = localHourFrom(hour.timestamp, tzOffsetSeconds),
+                        ),
                         modifier = Modifier.padding(vertical = 4.dp),
                     )
                     Text(text = formatTemperature(hour.temp, unit), style = MaterialTheme.typography.bodySmall)

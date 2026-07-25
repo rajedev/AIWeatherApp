@@ -5,13 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rajedev.aiweatherapp.domain.model.ThemeMode
 import com.rajedev.aiweatherapp.presentation.navigation.AppNavHost
 import com.rajedev.aiweatherapp.presentation.theme.AppThemeViewModel
-import com.rajedev.aiweatherapp.presentation.theme.WeatherAdaptiveTheme
 import com.rajedev.aiweatherapp.ui.theme.AIWeatherAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -24,11 +25,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            AIWeatherAppTheme {
-                val mood by themeViewModel.mood.collectAsStateWithLifecycle()
-                WeatherAdaptiveTheme(mood = mood) {
-                    AppNavHost(modifier = Modifier.fillMaxSize())
-                }
+            val themeMode by themeViewModel.themeMode.collectAsStateWithLifecycle()
+            val darkTheme = when (themeMode) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+            AIWeatherAppTheme(darkTheme = darkTheme) {
+                AppNavHost(modifier = Modifier.fillMaxSize())
             }
         }
     }

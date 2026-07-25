@@ -2,6 +2,7 @@ package com.rajedev.aiweatherapp.presentation.ui.savedcities
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rajedev.aiweatherapp.domain.repository.LocationServicesUnavailable
 import com.rajedev.aiweatherapp.domain.usecase.GetUserPreferencesUseCase
 import com.rajedev.aiweatherapp.domain.usecase.ObserveSavedCitiesUseCase
 import com.rajedev.aiweatherapp.domain.usecase.RemoveCityUseCase
@@ -52,11 +53,21 @@ class SavedCitiesViewModel @Inject constructor(
             SavedCitiesAction.UseCurrentLocation -> requestLocationPermission()
             is SavedCitiesAction.LocationPermissionResult -> onLocationPermissionResult(action.granted)
             SavedCitiesAction.ConsumeError -> _uiState.update { it.copy(errorMessage = null) }
+            SavedCitiesAction.DismissLocationServicesDialog ->
+                _uiState.update { it.copy(showLocationServicesDisabledDialog = false) }
+            SavedCitiesAction.OpenLocationSettingsRequested -> openLocationSettings()
         }
     }
 
     private fun requestLocationPermission() {
         viewModelScope.launch { _uiEvent.send(SavedCitiesUiEvent.RequestLocationPermission) }
+    }
+
+    private fun openLocationSettings() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(showLocationServicesDisabledDialog = false) }
+            _uiEvent.send(SavedCitiesUiEvent.OpenLocationSettings)
+        }
     }
 
     private fun onLocationPermissionResult(granted: Boolean) {
@@ -65,7 +76,15 @@ class SavedCitiesViewModel @Inject constructor(
             resolveCurrentLocationCityUseCase()
                 .mapCatching { city -> city to saveCityUseCase(city).getOrThrow() }
                 .onSuccess { (city, _) -> _uiEvent.send(SavedCitiesUiEvent.CityAdded(city.cityId)) }
-                .onFailure { e -> _uiState.update { it.copy(errorMessage = e.message) } }
+                .onFailure(::handleLocationFailure)
+        }
+    }
+
+    private fun handleLocationFailure(error: Throwable) {
+        if (error is LocationServicesUnavailable) {
+            _uiState.update { it.copy(showLocationServicesDisabledDialog = true) }
+        } else {
+            _uiState.update { it.copy(errorMessage = error.message) }
         }
     }
 }

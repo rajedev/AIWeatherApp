@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rajedev.aiweatherapp.R
+import com.rajedev.aiweatherapp.domain.model.ThemeMode
 import com.rajedev.aiweatherapp.domain.model.WeatherUnit
 import com.rajedev.aiweatherapp.notification.NotificationPermissionHandler
 import com.rajedev.aiweatherapp.presentation.common.celsiusToDisplayUnit
@@ -113,6 +114,27 @@ private fun SettingsContent(
 
             HorizontalDivider()
 
+            Text(text = stringResource(R.string.settings_theme_label), style = MaterialTheme.typography.titleMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = uiState.themeMode == ThemeMode.SYSTEM,
+                    onClick = { onAction(SettingsAction.SetThemeMode(ThemeMode.SYSTEM)) },
+                    label = { Text(stringResource(R.string.settings_theme_system)) },
+                )
+                FilterChip(
+                    selected = uiState.themeMode == ThemeMode.LIGHT,
+                    onClick = { onAction(SettingsAction.SetThemeMode(ThemeMode.LIGHT)) },
+                    label = { Text(stringResource(R.string.settings_theme_light)) },
+                )
+                FilterChip(
+                    selected = uiState.themeMode == ThemeMode.DARK,
+                    onClick = { onAction(SettingsAction.SetThemeMode(ThemeMode.DARK)) },
+                    label = { Text(stringResource(R.string.settings_theme_dark)) },
+                )
+            }
+
+            HorizontalDivider()
+
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(text = stringResource(R.string.settings_alerts_label), style = MaterialTheme.typography.titleMedium)
                 Switch(
@@ -181,7 +203,13 @@ private fun celsiusRangeToDisplay(rangeC: ClosedFloatingPointRange<Float>, unit:
 private fun SettingsContentPreview() {
     AIWeatherAppTheme {
         SettingsContent(
-            uiState = SettingsUiState(unit = WeatherUnit.METRIC, highTempC = 35.0, lowTempC = 5.0, alertsEnabled = true),
+            uiState = SettingsUiState(
+                unit = WeatherUnit.METRIC,
+                highTempC = 35.0,
+                lowTempC = 5.0,
+                alertsEnabled = true,
+                themeMode = ThemeMode.SYSTEM,
+            ),
             onAction = {},
             onBack = {},
         )

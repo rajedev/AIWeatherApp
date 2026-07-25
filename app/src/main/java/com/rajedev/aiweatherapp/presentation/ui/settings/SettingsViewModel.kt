@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.rajedev.aiweatherapp.domain.model.AlertThresholds
 import com.rajedev.aiweatherapp.domain.usecase.GetUserPreferencesUseCase
 import com.rajedev.aiweatherapp.domain.usecase.SetAlertThresholdsUseCase
+import com.rajedev.aiweatherapp.domain.usecase.SetThemeModeUseCase
 import com.rajedev.aiweatherapp.domain.usecase.SetUnitsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -19,6 +20,7 @@ class SettingsViewModel @Inject constructor(
     private val getUserPreferencesUseCase: GetUserPreferencesUseCase,
     private val setUnitsUseCase: SetUnitsUseCase,
     private val setAlertThresholdsUseCase: SetAlertThresholdsUseCase,
+    private val setThemeModeUseCase: SetThemeModeUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -35,6 +37,7 @@ class SettingsViewModel @Inject constructor(
                             highTempC = preferences.thresholds.highTempC,
                             lowTempC = preferences.thresholds.lowTempC,
                             alertsEnabled = preferences.thresholds.alertsEnabled,
+                            themeMode = preferences.themeMode,
                         )
                     }
                 }
@@ -47,6 +50,7 @@ class SettingsViewModel @Inject constructor(
             is SettingsAction.SetHighTempThreshold -> updateThresholds(highTempC = action.value)
             is SettingsAction.SetLowTempThreshold -> updateThresholds(lowTempC = action.value)
             is SettingsAction.ToggleAlerts -> updateThresholds(alertsEnabled = action.enabled)
+            is SettingsAction.SetThemeMode -> viewModelScope.launch { setThemeModeUseCase(action.themeMode) }
         }
     }
 

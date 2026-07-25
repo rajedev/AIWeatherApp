@@ -10,4 +10,5 @@ data class SavedCitiesUiState(
     val unit: WeatherUnit = WeatherUnit.METRIC,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
+    val showLocationServicesDisabledDialog: Boolean = false,
 )

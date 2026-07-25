@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.rajedev.aiweatherapp.domain.model.AlertThresholds
+import com.rajedev.aiweatherapp.domain.model.ThemeMode
 import com.rajedev.aiweatherapp.domain.model.UserPreferences
 import com.rajedev.aiweatherapp.domain.model.WeatherUnit
 import com.rajedev.aiweatherapp.domain.repository.PreferencesRepository
@@ -32,6 +33,7 @@ internal class UserPreferencesDataStore @Inject constructor(
                     lowTempC = prefs[LOW_TEMP_KEY] ?: DEFAULT_LOW_TEMP_C,
                     alertsEnabled = prefs[ALERTS_ENABLED_KEY] ?: false,
                 ),
+                themeMode = ThemeMode.valueOf(prefs[THEME_MODE_KEY] ?: ThemeMode.SYSTEM.name),
             )
         }
 
@@ -47,15 +49,20 @@ internal class UserPreferencesDataStore @Inject constructor(
         }
     }
 
+    override suspend fun setThemeMode(themeMode: ThemeMode) {
+        context.dataStore.edit { it[THEME_MODE_KEY] = themeMode.name }
+    }
+
     private companion object {
         val UNIT_KEY = stringPreferencesKey("unit")
         val HIGH_TEMP_KEY = doublePreferencesKey("high_temp_c")
         val LOW_TEMP_KEY = doublePreferencesKey("low_temp_c")
         val ALERTS_ENABLED_KEY = booleanPreferencesKey("alerts_enabled")
+        val THEME_MODE_KEY = stringPreferencesKey("theme_mode")
 
         // Intentionally mirrors the HOT/WINTER mood-boundary constants in the weather-adaptive
         // theming system, so "looks hot in the theme" and "triggers an alert" agree by default.
-        const val DEFAULT_HIGH_TEMP_C = 35.0
+        const val DEFAULT_HIGH_TEMP_C = 30.0
         const val DEFAULT_LOW_TEMP_C = 5.0
     }
 }
