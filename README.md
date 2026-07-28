@@ -2,7 +2,15 @@
 
 A weather app for Android built with Kotlin and Jetpack Compose, featuring offline-first caching, background sync, and a UI that adapts its theme to the current weather.
 
-Built with [Claude Code](https://claude.com/claude-code) — used throughout for architecture, feature implementation, and Android best practices.
+> <img src="https://cdn.prod.website-files.com/621f84dc15b5ed16dc85a18a/67cb0634bb09026ce5e49894_claude-code.webp" width="200" height = "200" /> 
+
+> *Build this applicaiton as part of learning [Claude Code](https://claude.ai/code) features like Context Management (CLAUDE.md), Plan mode & Checkpoints, Skill, Hooks & Commands*
+
+## Screens
+
+|               Dashboard               |                Current                |                Forecast                 |                Settings                |
+|:--------------------------------:|:------------------------------------:|:--------------------------------------------:|:----------------------------------------------:|
+| ![Dashboard](other_docs/screens/A.png) | ![Current](other_docs/screens/B.png) | ![Forecase](other_docs/screens/C.png) | ![Settings](other_docs/screens/C.png) |
 
 ## Features
 
